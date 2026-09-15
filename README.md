@@ -4,7 +4,7 @@
 
 **纯离线本地阅读器 · 六种格式 · 中英双语**
 
-`v1.0.0 (versionCode 42)`　·　`com.book.offlineReader`　·　无网络权限
+`v1.1.0 (versionCode 43)`　·　`com.book.offlineReader`　·　无网络权限
 
 </div>
 
@@ -14,10 +14,10 @@
 
 「离阅」(oRead) 是一款**完全离线**的本地阅读器：把书放进手机，它负责排版、翻页、朗读、换肤。
 
-这里提供的是它的**增强改造版**。相比原版，做了两件事：
+这里提供的是它的**增强改造版**。相比原版做了三件事：
 
-1. **补齐了三种主流格式** —— 原版只能读 TXT / UMD / EPUB，现在 **PDF、MOBI、ZIP 漫画包**也能直接翻开。
-2. **重做了翻页与滚动的手感** —— 目标只有一个：**快，而且丝滑。**
+1. **补齐三种主流格式** —— 原版只能读 TXT / UMD / EPUB，现在 **PDF、MOBI、ZIP 漫画包**也能直接翻开。
+2. **重做翻页与滚动的手感** —— 目标只有一个：**快，而且丝滑。**
 
 **TXT、UMD、EPUB、PDF、MOBI、ZIP —— 六种文件，一个应用读完。** 界面支持跟随系统 / 简体中文 / English。
 
@@ -26,7 +26,7 @@
 ## 📚 支持的文件格式
 
 | 格式 | 扩展名 | | 说明 |
-|:---|:---|:---:|:---|
+| :--- | :--- | :---: | :--- |
 | **TXT** | `.txt` | 原生 | 纯文本小说，自动分章、断句、排版，超大文件也流畅 |
 | **UMD** | `.umd` | 原生 | 手机电子书格式，章节与插图解析完整 |
 | **EPUB** | `.epub` | 原生 | 标准电子书格式 |
@@ -52,9 +52,32 @@
 
 当前页渲染完成时，**相邻页已经在后台解码并缓存好了**。翻过去看到的是成品，不会出现「先白屏、再逐行冒出来」的空窗。
 
+### 翻页：仿真卷角
+
+不是整张画布平移或淡入淡出，而是**真的把纸角掀起来**：
+
+| 翻下一页 —— 掀右下角 | 翻上一页 —— 掀左下角 |
+|:---:|:---:|
+| ![卷角-翻下一页](images/12-page-curl-forward.jpg) | ![卷角-翻上一页](images/13-page-curl-back.jpg) |
+
+（截图为 1.1.0 实机拖动过程中的一帧；拖动时折角跟着手指走，松手后补完剩余动画。）
+
+- **折线角度按方向区分** —— 朝右翻用陡折线（约 67°），掀起来的是**右下角**，纸角窄长；朝左翻用缓折线（约 34°），掀起来的是**左下角**，月牙宽扁。两个方向的形态一眼可辨。
+- **装订边永远掀不开** —— 往前翻时，是**上一页从右侧盖过来**，折线最多推到恰好越过左下角就停住。左侧那条装订边像被订书机钉住一样纹丝不动，符合真书的物理直觉。
+- **纸有厚度** —— 翻起的那一页背面带圆柱面渐变，并在下面那页上投出接触阴影。
+- 一次卷角 **420 ms**；手指拖动时按「页面在折线法向上的跨度」换算进度，跟手。
+
 ### 滚动：有惯性
 
 手指一划，内容会**按你的手速继续滑行，再自然减速停下** —— 和 TXT 阅读器完全同一套手感，不是「拖多少走多少」。
+
+### 缩放：双指 1× ~ 8×
+
+PDF / MOBI / ZIP 三种阅读器都支持，**翻页模式和上下滚动模式都可以**：
+
+- 两指捏合，**以捏合中心为焦点**放大或缩小；放大后单指可平移（滚动模式下上下、左右都能拖）。
+- 缩放下限是 **1×** —— 页面本来就已宽度适配，再缩没有阅读价值，也会和卷角的几何对不上。
+- 双指收回到 1× 会自动回中复位；放大状态下拖动**不会**误触发整页翻页。
 
 ### 大图不卡、不崩
 
@@ -66,16 +89,35 @@
 
 ### 画面不闪、底色不跳
 
-滚动时精确定位可见页范围，不多要一页；翻页动画的底板颜色与阅读底色一致，动画过程中不会闪出一块突兀的色块。
+滚动时精确定位可见页范围，不多要一页；翻页动画的底板颜色与阅读底色一致，动画过程中不会闪出一块突兀的色块。点击屏幕中央唤出菜单时，也不会再闪出一帧杂色。
 
 ### 实测（模拟器 1080×2400，打开 197 页 ZIP 漫画）
 
 | 指标 | 优化前 | 优化后 |
-|:---|---:|---:|
+| :--- | ---: | ---: |
 | 页缓存抖动（静止观察 18 秒） | 反复淘汰 **188 次**，画面不停闪烁 | **不再抖动**，画面连续 6 帧完全一致 |
 | 内存 Native Heap | 67 MB | **35 MB** |
 | 进程 TOTAL Pss | 101 MB | **49 MB** |
 | 静止后 GC 活动 | 每秒 1~2 次（单次暂停最高 367 ms） | **基本停止** |
+
+---
+
+## 🎨 书架：换皮肤、换 dpi 都不跑位
+
+原来的书架有两个互相打架的毛病：**换手机 dpi 书册会漂，换皮肤书册会跳**。这一版把它们一起摁死了。
+
+**病根**：书册的**尺寸**用 dp 表达，而**格高和落点**直接拿皮肤图的像素当屏幕像素用。两者只有在「图高 400 px 且屏幕 480 dpi」这个巧合点上才刚好对齐。更麻烦的是层板线是**运行时扫**出来的 —— 三条判定规则语义各不相同，31 套皮肤里 6 套直接探测失败，量出来的底距跨度 1~70 px。所以换皮肤不是「偏一点」，而是**跳一下**。
+
+| # | 这一版的做法 |
+| --- | --- |
+| 1 | 皮肤图（背景 / 左封边 / 右封边）载入时**等比缩放到格子高**，平铺周期与行高严格相等 → 对 dpi 免疫 |
+| 2 | **不再运行时猜层板线**，停用扫描 |
+| 3 | 书册尺寸改成**纯 dp**（封面 110 dp × 85.33 dp） |
+| 4 | 落点改用**固定比例**：书底距 = 格高的 **9.25%**，与 dpi、与皮肤都无关 |
+| 5 | 删掉原来的固定抬升补值 —— 它要补的误差在各皮肤上符号和量级都不一致（实测 +45 / +45 / +30 / +51 与 −2 px），一个常数不可能同时对齐 |
+| 6 | 山水墨画（s08）三张图的层板带**整体上移 12 行**以对齐新落点 —— 三张图必须同步改，只改一张就会出现「层板左右断开」 |
+
+**结果：任意皮肤 × 任意 dpi，书册在格子里的相对位置恒定。**
 
 ---
 
@@ -90,7 +132,7 @@
 ### 完整权限清单
 
 | 权限 | 用途 |
-|---|---|
+| --- | --- |
 | `READ_EXTERNAL_STORAGE` | 扫描并读取本机电子书 / 漫画文件 |
 | `WRITE_EXTERNAL_STORAGE` | 导入书籍、保存书架数据与备份文件 |
 | `WAKE_LOCK` | 长时间阅读 / 朗读时保持唤醒，不中途熄屏 |
@@ -146,6 +188,8 @@
 
 - **六种格式**：TXT / UMD / EPUB / PDF / MOBI / ZIP 漫画包，各有专门的渲染路径
 - **翻页与滚动**：每种格式都支持「翻页」与「上下滚动」两种阅读方式，带惯性滑动、多种翻页动画、横竖屏、全屏阅读
+- **仿真卷角翻页**：折线角度按方向区分，往前翻时上一页盖过来、装订边掀不开
+- **双指缩放 1× ~ 8×**：以捏合中心为焦点，放大后单指平移，回到 1× 自动回中
 - **超大文件**：文本自动分章排版；漫画按需解码，几千页也不卡
 - **PDF 全文搜索**：搜索面板与文本阅读器保持一致，结果列出命中页的百分比与摘录，命中词高亮
 - **目录与书签**：跳章、加书签、全书搜索；PDF / MOBI / ZIP 同样支持目录与书签
@@ -171,43 +215,47 @@
 ### 🎨 外观
 
 - **阅读辅助**：分「皮肤 / 字体 / 主题」三个页签
-- **内置多套皮肤**：默认皮肤、书香古木、仿 Anyview 风格、仿古木、粽叶飘香、八三男人节等
-- **字体与主题**：可换字体、字号、行距与主题配色
+- **内置多套皮肤**：默认皮肤、书香古木、仿 Anyview 风格、仿古木、粽叶飘香、八三男人节等，另有 31 套皮肤包随包附带
+- **换皮肤即时生效**，不需要重启应用
+- **外部素材自动导入**：把 `.isk` 皮肤放进 `.oRead/Resource/Skin/`、主题包放进 `.oRead/Resource/Theme/`，会自动出现在列表的「本地」分类里，可单独删除
+- **字体与主题**：可换字体、字号、行距与主题配色；字体目录为 `.oRead/Resource/Fonts/`
 
 ### 🌐 双语界面
 
 - 界面语言支持 **跟随系统 / 简体中文 / English**
-- 切换后自动重启应用即刻生效
+- **切换即时生效，不需要重启应用**
 - 英文界面下，底部工具栏、设置页签、阅读设置面板等窄栏位文案均已按宽度适配，不会截断或换行
 
 ---
 
 ## 安装
 
-1. 下载 [`oRead-1.0.0-bilingual.apk`](oRead-1.0.0-bilingual.apk)
+1. 下载 [`oRead-1.1.0-bilingual.apk`](oRead-1.1.0-bilingual.apk)
 2. 在手机上直接安装（首次需允许「安装未知来源应用」）
 3. 若手机已安装**官方原版**或**本项目的旧版本**，请先卸载再安装 —— 本包使用自签名证书，与原版签名不同，无法覆盖安装
    > 卸载会清空原有书架数据，建议先在原版内做一次「备份」并把备份文件拷出
 
-APK 大小约 **33.4 MB**（35,076,372 字节）
+APK 大小约 **27.7 MB**（29,026,005 字节）
 
 <details>
 <summary>校验和（SHA-256）</summary>
 
 ```
-382955cc196669bd068ff71a914f8352cd9205694e8731e2dbb5ae1a0ee6c6f7  oRead-1.0.0-bilingual.apk
+b7b4949cba329c894ba78e22f5b5cbd884282a5ef87fdea8084ea37efdcd79a8  oRead-1.1.0-bilingual.apk
 ```
 
 </details>
+
+> v1.0.0 的安装包归档在 [`_archive/`](_archive/)，以便回退。
 
 ---
 
 ## 兼容性
 
 | 项 | 值 |
-|---|---|
+| --- | --- |
 | 包名 | `com.book.offlineReader` |
-| 版本 | 1.0.0（versionCode 42） |
+| 版本 | 1.1.0（versionCode 43） |
 | 应用名 | 离阅（英文 oRead） |
 | 最低支持 | API 5（Android 2.0） |
 | 目标版本 | API 28（Android 9） |
@@ -216,46 +264,18 @@ APK 大小约 **33.4 MB**（35,076,372 字节）
 
 ---
 
-## 本版做了什么
+## 更新日志
 
-### 一、新增三种格式
+### v1.1.0
 
-| # | 项 | 处理 |
-|---|---|---|
-| 1 | **PDF** | 接入系统原生 `PdfRenderer` 渲染，扫描版 / 图文版均可读，支持翻页与滚动两种方式、全文搜索（结果带命中页百分比与关键词高亮）。**零第三方库，APK 体积不因此膨胀** |
-| 2 | **MOBI** | 自研解析器，支持 `.mobi` `.prc` `.azw` `.azw3`；正文与图片页分离，图片页按需解码 |
-| 3 | **ZIP 漫画** | 图片压缩包直接按漫画阅读；自动判定「是否为图片包」，避免抢占应用原有的压缩包浏览功能 |
-| 4 | **格式识别** | 上述格式纳入可读白名单，并注册进系统「打开方式」 |
-| 5 | **书架角标** | 详情视图封面右上角显示 P / M / Z 角标，与原有 T / E / U 统一为浅蓝底白字 |
+**新增**
 
-### 二、手感与性能
-
-| # | 问题 | 原因 | 处理 |
-|---|---|---|---|
-| 6 | 漫画画面持续闪烁 | 可见页范围多算了一页，而页缓存上限只有 3 张 —— 多请求的那页恰好把**正在显示的一页**挤掉，形成「解码 → 淘汰 → 再解码」死循环 | 修正可见页范围；新增统一页缓存（30 张上限 + 窗口钉住 + 96 MB 预算） |
-| 7 | 滚动没有惯性 | 松手后只按固定系数跳一段，没有衰减过程 | 改用系统标准惯性滚动算法（速度追踪 + 衰减曲线） |
-| 8 | 拖动过程中重复写盘 | 同一页内的高频帧也在反复保存进度 | 进度回调节流（100 ms），页码真正变化时仍即时上报 |
-| 9 | 翻页动画期间底色突变 | 动画底板写死深灰，与纯黑底色的漫画阅读器不一致 | 底板颜色改为跟随阅读器底色 |
-
-### 三、双语界面（v1.0.0 的修复）
-
-| # | 问题 | 原因 | 处理 |
-|---|---|---|---|
-| 10 | 语言项默认显示 English，本机是中文却不跟随 | 语言取值的判断分支写反了 | 修正判断逻辑，未设置时按「跟随系统」处理 |
-| 11 | 点击「语言」不弹窗、选完没反应 | 语言项用了自定义的列表对话框，它顶掉了系统的选项回调，选择结果传不出来 | 改回框架标准单选对话框，回调链恢复 |
-| 12 | 切换语言后应用直接退出，而不是像换肤那样重启 | 启动新实例后**立即**杀进程，系统还没处理完启动请求，任务被一起销毁 | 改为延迟重启：先把启动意图交给系统闹钟托管，再退出进程，约 0.3 秒后由系统以全新进程拉起 |
-| 13 | 切到英文后多处文字不显示或挤成 `...` | 英文标签过长，而设置页页签只有屏宽 1/3、底栏格子仅 64dp、阅读设置面板仅 90dp | 为窄栏位改用简短英文（如 Preferences → Options、Contents & Bookmarks → Contents） |
-| 14 | 设置列表长标题被硬裁掉、摘要把行撑高 | 标题为单行且宽度按内容测量后被父容器裁切；摘要未限行数 | 标题与摘要均改为最多两行并带省略号 |
-
----
-
-## 免责声明
-
-- 本改造版仅用于**个人学习与逆向研究**，请于下载后 24 小时内自行删除，**请勿用于商业分发**。
-- 应用本身的著作权归原作者所有，本仓库不对原应用主张任何权利。
-- 使用本应用时请遵守当地法律法规，支持正版内容。
-
----
+| # | 项 | 说明 |
+| --- | --- | --- |
+| 1 | **仿真卷角翻页** | 折线角度按方向区分 —— 朝右翻约 67°、掀右下角；朝左翻约 34°、掀左下角。往前翻改为上一页从右侧盖过来，**装订边掀不开**。纸背加圆柱面渐变与接触阴影，一次卷角 420 ms |
+| 2 | **双指缩放** | PDF / MOBI / ZIP 的翻页模式与滚动模式均支持 **1× ~ 8×**，以捏合中心为焦点，放大后单指平移，回到 1× 自动回中 |
+| 3 | **换皮肤免重启** | 选中即热应用，不再提示「修改皮肤需要重启应用」 |
+| 4 | **换语言免重启** | 去掉二次确认，选中即生效 |
 
 <details>
 <summary><b>English</b></summary>
@@ -264,19 +284,25 @@ APK 大小约 **33.4 MB**（35,076,372 字节）
 
 **No network permission.** The app does not declare `android.permission.INTERNET`. This is not a policy promise — it is a technical impossibility: without that permission the process cannot open a socket at all, so it can never upload your library, reading history or device information, and can never load online ads.
 
-**Supported formats** — TXT · UMD · EPUB · PDF · MOBI (incl. `.prc` / `.azw` / `.azw3`) · ZIP comic archives. PDF, MOBI and ZIP are new in this build. Every format gets automatic cover thumbnails, per-book reading progress and its own entry in the system "Open with" list. PDF rendering uses the platform `PdfRenderer` — no third-party library, so the APK does not grow.
+**Supported formats** — TXT · UMD · EPUB · PDF · MOBI (incl. `.prc` / `.azw` / `.azw3`) · ZIP comic archives. PDF, MOBI and ZIP arrived in v1.0.0. Every format gets automatic cover thumbnails, per-book reading progress and its own entry in the system "Open with" list. PDF rendering uses the platform `PdfRenderer` — no third-party library, so the APK does not grow.
 
 **Fast and smooth** — adjacent pages are decoded and cached ahead of time, so a page turn shows a finished image instead of a blank flash. Scrolling has real inertia: flick and the content keeps gliding, then eases to a stop. Bitmaps are decoded downsampled and the page cache is pinned to the visible window, so thousand-page comic archives stay responsive and never run out of memory. On a 1080×2400 emulator with a 197-page ZIP comic, cache evictions dropped from 188 to 0, native heap from 67 MB to 35 MB, and total Pss from 101 MB to 49 MB; GC stops when the screen is idle.
 
-- **Reading** — six formats, page-turn and continuous-scroll modes, inertial scrolling, highlight/select, simplified↔traditional toggle, TOC & bookmarks, full-text search (PDF included), multiple page-turn animations, night mode, background TTS, headset/wired controls, eye-rest reminders.
-- **Library** — bulk smart import, format badges (T/U/E/P/M/Z), category shelves, shelf search & management, per-book reading progress, automatic cover thumbnails, one-tap backup/restore, app password, GPU acceleration toggle.
-- **Appearance** — multiple built-in skins, fonts and themes.
-- **Language** — Follow system / 简体中文 / English, applied after an automatic restart.
+**Simulated page curl (new in v1.1.0)** — the fold line is not a fixed angle. Turning forward uses a steep fold (~67°) that lifts the bottom-right corner; turning back uses a shallow one (~34°) that lifts the bottom-left. Turning back is a *previous page sliding in from the right*, and the fold can never travel past the bottom-left corner — **the binding edge stays pinned down**, just like a real book. The lifted sheet has a cylindrical gradient on its back and casts a shadow on the page beneath. A full curl takes 420 ms.
 
-Install: grab `oRead-1.0.0-bilingual.apk`. Uninstall the official build (or any earlier build of this project) first — this package is self-signed and cannot overwrite them.
+**Pinch zoom (new in v1.1.0)** — PDF / MOBI / ZIP support **1×–8×** in both page-turn and continuous-scroll modes, anchored on the pinch focus, with one-finger panning once zoomed. Pinching back to 1× recentres automatically.
+
+**A bookshelf that never drifts (new in v1.1.0)** — book size was expressed in dp while the cell height and the book's resting position were taken straight from the skin image's pixels; the two only coincided at "400 px image, 480 dpi". On top of that the shelf line was detected at runtime by three rules with different semantics, and 6 of 31 skins failed detection outright — measured bottom margins ranged from 1 to 70 px, so switching skins made the books *jump*. v1.1.0 scales each skin image to the cell height on load, drops runtime shelf-line detection, expresses book size purely in dp, and places the books at a fixed **9.25 % of cell height**. Result: **the same relative position under any skin at any dpi.**
+
+- **Reading** — six formats, page-turn and continuous-scroll modes, simulated page curl, pinch zoom, inertial scrolling, highlight/select, simplified↔traditional toggle, TOC & bookmarks, full-text search (PDF included), multiple page-turn animations, night mode, background TTS, headset/wired controls, eye-rest reminders.
+- **Library** — bulk smart import, format badges (T/U/E/P/M/Z), category shelves, shelf search & management, per-book reading progress, automatic cover thumbnails, one-tap backup/restore, app password, GPU acceleration toggle.
+- **Appearance** — multiple built-in skins plus 31 bundled skin packs; dropping a `.isk` into `.oRead/Resource/Skin/` (or a theme into `.oRead/Resource/Theme/`) adds it to the "local" list automatically. Fonts live in `.oRead/Resource/Fonts/`.
+- **Language** — Follow system / 简体中文 / English. **Both skin and language changes apply instantly — no restart.**
+
+Install: grab `oRead-1.1.0-bilingual.apk`. Uninstall the official build (or any earlier build of this project) first — this package is self-signed and cannot overwrite them. v1.0.0 is kept under `_archive/`.
 
 PDF reading requires Android 5.0 (API 21) or later; the other five formats do not.
 
-For personal study and reverse-engineering research only. All rights to the original application belong to its original authors.
+For personal study and reverse-engineering research only. All rights to the original application belong to its original authors. Comic artwork in the screenshots is shown only to demonstrate the software.
 
 </details>
